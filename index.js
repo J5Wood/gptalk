@@ -1,7 +1,23 @@
 import OpenAI from "openai";
+import fs from "fs";
+import path from "path";
+import Audic from "audic";
 
 const gptOne = new OpenAI();
 const gptTwo = new OpenAI();
+
+const speechFile = path.resolve("./speech.mp3");
+
+async function speech(inputText) {
+  const mp3 = await gptOne.audio.speech.create({
+    model: "tts-1",
+    voice: "alloy",
+    input: inputText,
+  });
+  console.log(speechFile);
+  const buffer = Buffer.from(await mp3.arrayBuffer());
+  await fs.promises.writeFile(speechFile, buffer);
+}
 
 async function main() {
   const premise = {
@@ -27,19 +43,48 @@ async function main() {
     return response;
   }
 
+  async function playSpeechFile() {
+    const audic = new Audic(speechFile);
+    audic.volume = 1;
+    audic.addEventListener("ended", () => {
+      console.log("ended");
+      audic.destroy();
+    });
+    await audic.play();
+  }
+
   while (true) {
     const chatOne = await sendMessage(gptOne, messageList);
-    console.log("\nBot One: ", chatOne.choices[0].message["content"]);
+    const text = chatOne.choices[0].message["content"];
+    await speech(text);
+    console.log("\nBot One: ", text);
+    await playSpeechFile();
     messageList.push({
       role: "user",
-      content: chatOne.choices[0].message["content"],
+      content: text,
     });
     const chatTwo = await sendMessage(gptTwo, messageList);
-    console.log("\nBot Two: ", chatTwo.choices[0].message["content"]);
+    const textTwo = chatTwo.choices[0].message["content"];
+    await speech(text);
+    console.log("\nBot Two: ", textTwo);
+    await playSpeechFile();
     messageList.push({
       role: "user",
-      content: chatTwo.choices[0].message["content"],
+      content: textTwo,
     });
   }
 }
 main();
+
+// const speechFile = path.resolve("./speech.mp3");
+
+// async function speech(inputText) {
+//   const mp3 = await openai.audio.speech.create({
+//     model: "tts-1",
+//     voice: "alloy",
+//     input: inputText,
+//   });
+//   console.log(speechFile);
+//   const buffer = Buffer.from(await mp3.arrayBuffer());
+//   await fs.promises.writeFile(speechFile, buffer);
+// }

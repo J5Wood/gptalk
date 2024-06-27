@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "audic": "^3.0.2",
     "openai": "^4.52.1"
   },
   "type": "module"
