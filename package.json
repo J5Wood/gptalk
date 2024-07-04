@@ -2,15 +2,13 @@
   "name": "gptalk",
   "version": "1.0.0",
   "description": "Get two GPT instances to talk to each other.",
-  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --env-file=.env src/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "audic": "^3.0.2",
+    "elevenlabs": "^0.8.2",
     "openai": "^4.52.1"
   },
   "type": "module"

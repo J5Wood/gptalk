@@ -2,3 +2,4 @@
 .DS_Store
 speechOne.mp3
 speechTwo.mp3
+.env
