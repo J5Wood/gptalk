@@ -3,7 +3,7 @@ import path from "path";
 import { exec } from "node:child_process";
 import util from "util";
 import { textToAudio } from "./textToAudio.js";
-import voices from "./elevenLabsVoicesDict.json" assert { type: "json" };
+import voices from "./src/elevenLabsVoicesDict.json" assert { type: "json" };
 
 const execute = util.promisify(exec);
 
@@ -13,24 +13,25 @@ const gptTwo = new OpenAI();
 const speechFileOne = path.resolve("./src/audio/audioOne.mp3");
 const speechFileTwo = path.resolve("./src/audio/audioTwo.mp3");
 
-const randomNumOne = Math.floor(Math.random() * 45);
-const randomVoiceKeyOne = Object.keys(voices)[randomNumOne];
-const randomNumTwo = Math.floor(Math.random() * 45);
-const randomVoiceKeyTwo = Object.keys(voices)[randomNumTwo];
-const voiceOne = voices[randomVoiceKeyOne];
-const voiceTwo = voices[randomVoiceKeyTwo];
+const voiceOne = voices["Demon"];
+const voiceTwo = voices["BillOxley"];
 
-async function main() {
+// const randomNumOne = Math.floor(Math.random() * 45);
+// const randomVoiceKeyOne = Object.keys(voices)[randomNumOne];
+// const randomNumTwo = Math.floor(Math.random() * 45);
+// const randomVoiceKeyTwo = Object.keys(voices)[randomNumTwo];
+// const voiceOne = voices[randomVoiceKeyOne];
+// const voiceTwo = voices[randomVoiceKeyTwo];
+
+export async function main(prompt) {
   const premise = {
     role: "system",
-    content:
-      "Develop a new method of cooking and eating hot dogs, in the name of american independance.",
+    content: prompt,
   };
 
   const initialStatement = {
     role: "user",
-    content:
-      "Hello, stranger. End every message by saying: 'Bye Doug, I love you'",
+    content: "Begin",
   };
 
   const messageList = [premise, initialStatement];
@@ -67,4 +68,4 @@ async function main() {
   }
 }
 
-main();
+// main();

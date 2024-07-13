@@ -1,0 +1,78 @@
+---
+
+---
+
+<html>
+  <body>
+    <header>
+      <h1>GPTalk</h1>
+      <div class="prompt-container">
+        <label for="prompt-input">Prompt:</label>
+        <textarea class="prompt-input" name="prompt-input"></textarea>
+      </div>
+    </header>
+    <button class="start-button">START</button>
+    <div class="bot-container">
+      <div class="bot-one">
+        <img src="/cat.png" />
+        <div class="bot-output"></div>
+      </div>
+      <div class="bot-two">
+        <img src="/chicken.png" />
+        <div class="bot-output"></div>
+      </div>
+    </div>
+  </body>
+  <script>
+    import { json } from "express/lib/response";
+
+    const startButton = document.querySelector(".start-button");
+    const initialPrompt = document.querySelector(
+      ".prompt-input"
+    ) as HTMLInputElement;
+
+    if (startButton) {
+      startButton.addEventListener("click", () => {
+        const configObj = {
+          method: `POST`,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ data: initialPrompt.value }),
+        };
+        try {
+          fetch("http://localhost:3000", configObj)
+            .then((res) => res.json())
+            .then((data) => console.log(data));
+        } catch (err) {
+          console.log("Start conversation error: \n", err);
+        }
+      });
+    }
+  </script>
+
+  <style>
+    header {
+      display: flex;
+      align-items: center;
+      gap: 4em;
+    }
+    h1 {
+      position: relative;
+    }
+    .bot-container {
+      display: grid;
+      grid-template: 200px / 1fr 1fr;
+    }
+
+    .start-button {
+      background-color: green;
+      height: 60px;
+      width: 120px;
+      border-radius: 1em;
+      border: 2px solid black;
+      box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.73);
+    }
+  </style>
+</html>

@@ -1,4 +1,5 @@
 import fs from "fs";
+const APIKEY = import.meta.env.ELEVEN_LABS_API_KEY;
 
 export async function textToAudio(text, voice, bot) {
   try {
@@ -7,12 +8,12 @@ export async function textToAudio(text, voice, bot) {
       {
         method: "POST",
         headers: {
-          "xi-api-key": process.env.ELEVEN_LABS_API_KEY,
+          "xi-api-key": APIKEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: text,
-          voice_settings: { stability: 0.5, similarity_boost: 0.5 },
+          voice_settings: { stability: 0.0, similarity_boost: 0.0 },
           output_format: "mp3",
         }),
       }
