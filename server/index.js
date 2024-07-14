@@ -3,15 +3,15 @@ import path from "path";
 import { exec } from "node:child_process";
 import util from "util";
 import { textToAudio } from "./textToAudio.js";
-import voices from "./src/elevenLabsVoicesDict.json" assert { type: "json" };
+import voices from "./elevenLabsVoicesDict.json" assert { type: "json" };
 
 const execute = util.promisify(exec);
 
 const gptOne = new OpenAI();
 const gptTwo = new OpenAI();
 
-const speechFileOne = path.resolve("./src/audio/audioOne.mp3");
-const speechFileTwo = path.resolve("./src/audio/audioTwo.mp3");
+const speechFileOne = path.resolve("./audio/audioOne.mp3");
+const speechFileTwo = path.resolve("./audio/audioTwo.mp3");
 
 const voiceOne = voices["Demon"];
 const voiceTwo = voices["BillOxley"];
@@ -67,5 +67,3 @@ export async function main(prompt) {
     });
   }
 }
-
-// main();

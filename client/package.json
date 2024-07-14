@@ -1,0 +1,17 @@
+{
+  "name": "gptalk-client",
+  "version": "1.0.0",
+  "description": "Get two GPT instances to talk to each other.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "astro": "^4.11.5"
+  },
+  "type": "module"
+}

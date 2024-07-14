@@ -1,5 +1,5 @@
 import fs from "fs";
-const APIKEY = import.meta.env.ELEVEN_LABS_API_KEY;
+const APIKEY = process.env.ELEVEN_LABS_API_KEY;
 
 export async function textToAudio(text, voice, bot) {
   try {
@@ -25,9 +25,9 @@ export async function textToAudio(text, voice, bot) {
 
     const audioBuffer = await response.arrayBuffer();
     if (bot == "one") {
-      fs.writeFileSync("./src/audio/audioOne.mp3", Buffer.from(audioBuffer));
+      fs.writeFileSync("./audio/audioOne.mp3", Buffer.from(audioBuffer));
     } else {
-      fs.writeFileSync("./src/audio/audioTwo.mp3", Buffer.from(audioBuffer));
+      fs.writeFileSync("./audio/audioTwo.mp3", Buffer.from(audioBuffer));
     }
   } catch (error) {
     throw new Error(`Error converting text to speech: ${error.message}`);

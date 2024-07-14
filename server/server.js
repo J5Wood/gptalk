@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import main from "./index.js";
+import { main } from "./index.js";
 
 const app = express();
 const port = 3000;
@@ -11,7 +11,7 @@ app.use(express.json());
 app.post("/", async (req, res) => {
   console.log(req.body);
   const prompt = req.body.data;
-  await main();
+  await main(prompt);
   res.writeHead(200);
   res.end();
 
