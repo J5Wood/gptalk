@@ -24,6 +24,8 @@
     </div>
   </body>
   <script>
+    const context = new AudioContext();
+    let audio;
     const startButton = document.querySelector(".start-button");
     const initialPrompt = document.querySelector(
       ".prompt-input"
@@ -41,12 +43,22 @@
         };
         try {
           fetch("http://localhost:3000", configObj)
-            .then((res) => res.json())
-            .then((data) => console.log(data));
+            .then(async (res) => await res.arrayBuffer())
+            .then(async (data) => {
+              audio = await context.decodeAudioData(data);
+              playAudio();
+            });
         } catch (err) {
           console.log("Start conversation error: \n", err);
         }
       });
+    }
+
+    function playAudio() {
+      const playSound = context.createBufferSource();
+      playSound.buffer = audio;
+      playSound.connect(context.destination);
+      playSound.start(context.currentTime);
     }
   </script>
 
@@ -71,6 +83,7 @@
       border-radius: 1em;
       border: 2px solid black;
       box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.73);
+      cursor: pointer;
     }
   </style>
 </html>

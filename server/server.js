@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { main } from "./index.js";
+import { newConversation } from "./index.js";
 
 const app = express();
 const port = 3000;
@@ -9,13 +9,14 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/", async (req, res) => {
-  console.log(req.body);
   const prompt = req.body.data;
-  await main(prompt);
-  res.writeHead(200);
-  res.end();
+  const audio = await newConversation(prompt);
+  res.set({
+    "x-timestamp": Date.now(),
+    "x-sent": true,
+  });
 
-  // res.end(`{"message": "This is a JSON response"}`);
+  res.send(audio);
 });
 
 app.listen(port, () => {
