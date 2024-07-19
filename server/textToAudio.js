@@ -12,7 +12,7 @@ export async function textToAudio(text, voice, bot) {
         },
         body: JSON.stringify({
           text: text,
-          voice_settings: { stability: 0.0, similarity_boost: 0.0 },
+          voice_settings: { stability: 0.75, similarity_boost: 0.75 },
           output_format: "mp3",
         }),
       }

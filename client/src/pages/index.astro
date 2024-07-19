@@ -4,36 +4,39 @@
 
 <html>
   <body>
-    <header>
-      <h1>GPTalk</h1>
-      <div class="prompt-container">
-        <label for="prompt-input">Prompt:</label>
-        <textarea class="prompt-input" name="prompt-input"></textarea>
+    <main>
+      <header>
+        <h1>GPTalk</h1>
+        <div class="prompt-container">
+          <label for="prompt-input">Prompt:</label>
+          <textarea class="prompt-input" name="prompt-input"></textarea>
+        </div>
+      </header>
+      <button class="start-button">START</button>
+      <div class="bot-container">
+        <div class="bot bot-one">
+          <img class="bot-image" src="/cat.png" />
+          <p class="bot-output output-one"></p>
+        </div>
+        <div class="bot bot-two">
+          <img class="bot-image" src="/chicken.png" />
+          <div class="bot-output output-two"></div>
+        </div>
       </div>
-    </header>
-    <button class="start-button">START</button>
-    <div class="bot-container">
-      <div class="bot-one">
-        <img src="/cat.png" />
-        <div class="bot-output"></div>
-      </div>
-      <div class="bot-two">
-        <img src="/chicken.png" />
-        <div class="bot-output"></div>
-      </div>
-    </div>
+    </main>
   </body>
   <script>
     const context = new AudioContext();
-    let audio;
+    let playableAudio;
     const startButton = document.querySelector(".start-button");
     const initialPrompt = document.querySelector(
       ".prompt-input"
     ) as HTMLInputElement;
+    const botOneOutput = document.querySelector(".output-one");
 
     if (startButton) {
       startButton.addEventListener("click", () => {
-        const configObj = {
+        const textConfig = {
           method: `POST`,
           headers: {
             "Content-Type": "application/json",
@@ -42,10 +45,23 @@
           body: JSON.stringify({ data: initialPrompt.value }),
         };
         try {
-          fetch("http://localhost:3000", configObj)
+          fetch("http://localhost:3000", textConfig)
+            .then(async (res) => res.json())
+            .then(async (textData) => {
+              const audioConfig = {
+                method: `POST`,
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify({ data: textData }),
+              };
+              botOneOutput!.innerHTML = textData;
+              return fetch("http://localhost:3000/audio", audioConfig);
+            })
             .then(async (res) => await res.arrayBuffer())
-            .then(async (data) => {
-              audio = await context.decodeAudioData(data);
+            .then(async (audio) => {
+              playableAudio = await context.decodeAudioData(audio);
               playAudio();
             });
         } catch (err) {
@@ -56,13 +72,19 @@
 
     function playAudio() {
       const playSound = context.createBufferSource();
-      playSound.buffer = audio;
+      playSound.buffer = playableAudio;
       playSound.connect(context.destination);
       playSound.start(context.currentTime);
     }
   </script>
 
   <style>
+    main {
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: center;
+      align-items: center;
+    }
     header {
       display: flex;
       align-items: center;
@@ -71,9 +93,20 @@
     h1 {
       position: relative;
     }
+
+    .bot {
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: center;
+    }
+
+    .bot-image {
+      height: 50%;
+    }
+
     .bot-container {
       display: grid;
-      grid-template: 200px / 1fr 1fr;
+      grid-template: 1fr / 1fr 1fr;
     }
 
     .start-button {
@@ -84,6 +117,12 @@
       border: 2px solid black;
       box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.73);
       cursor: pointer;
+    }
+
+    .bot-output {
+      border: 1px solid black;
+      height: 150px;
+      width: 85%;
     }
   </style>
 </html>
