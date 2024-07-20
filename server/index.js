@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { textToAudio } from "./textToAudio.js";
 import voices from "./elevenLabsVoicesDict.json" assert { type: "json" };
 
-const gptOne = new OpenAI();
+const gptInstance = new OpenAI();
 
 const voiceOne = voices["Demon"];
 // const voiceTwo = voices["BillOxley"];
@@ -14,7 +14,7 @@ const voiceOne = voices["Demon"];
 // const voiceOne = voices[randomVoiceKeyOne];
 // const voiceTwo = voices[randomVoiceKeyTwo];
 
-export async function getText(prompt) {
+export async function getInitialText(prompt) {
   const premise = {
     role: "system",
     content: prompt + " Your responses need to be one sentence.",
@@ -37,10 +37,30 @@ export async function getText(prompt) {
     return response;
   }
 
-  const chatOne = await sendMessage(gptOne, messageList);
-  const text = chatOne.choices[0].message["content"];
+  const chat = await sendMessage(gptInstance, messageList);
+  const text = chat.choices[0].message["content"];
 
-  console.log("\nBot One: ", text);
+  console.log("\nBot: ", text);
+  return text;
+}
+
+export async function getContinuedText(prompt) {
+  const messageList = prompt;
+
+  async function sendMessage(bot, newMessage) {
+    const response = await bot.chat.completions.create({
+      messages: newMessage,
+      model: "gpt-3.5-turbo",
+      temperature: 0,
+      max_tokens: 1000,
+    });
+    return response;
+  }
+
+  const chat = await sendMessage(gptInstance, messageList);
+  const text = chat.choices[0].message["content"];
+
+  console.log("\nBot: ", text);
   return text;
 }
 
