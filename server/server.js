@@ -36,7 +36,8 @@ app.post("/continue", async (req, res) => {
 
 app.post("/audio", async (req, res) => {
   const prompt = req.body.data;
-  const audio = await getAudio(prompt);
+  const voice = req.body.voice;
+  const audio = await getAudio(prompt, voice);
   res.set({
     "x-timestamp": Date.now(),
     "x-sent": true,

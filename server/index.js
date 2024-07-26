@@ -1,18 +1,7 @@
 import OpenAI from "openai";
 import { textToAudio } from "./textToAudio.js";
-import voices from "./elevenLabsVoicesDict.json" assert { type: "json" };
 
 const gptInstance = new OpenAI();
-
-const voiceOne = voices["Demon"];
-// const voiceTwo = voices["BillOxley"];
-
-// const randomNumOne = Math.floor(Math.random() * 45);
-// const randomVoiceKeyOne = Object.keys(voices)[randomNumOne];
-// const randomNumTwo = Math.floor(Math.random() * 45);
-// const randomVoiceKeyTwo = Object.keys(voices)[randomNumTwo];
-// const voiceOne = voices[randomVoiceKeyOne];
-// const voiceTwo = voices[randomVoiceKeyTwo];
 
 export async function getInitialText(prompt) {
   const premise = {
@@ -40,7 +29,6 @@ export async function getInitialText(prompt) {
   const chat = await sendMessage(gptInstance, messageList);
   const text = chat.choices[0].message["content"];
 
-  console.log("\nBot: ", text);
   return text;
 }
 
@@ -60,10 +48,9 @@ export async function getContinuedText(prompt) {
   const chat = await sendMessage(gptInstance, messageList);
   const text = chat.choices[0].message["content"];
 
-  console.log("\nBot: ", text);
   return text;
 }
 
-export async function getAudio(text) {
-  return await textToAudio(text, voiceOne, "one");
+export async function getAudio(text, voice) {
+  return await textToAudio(text, voice);
 }

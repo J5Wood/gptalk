@@ -1,6 +1,6 @@
 const APIKEY = process.env.ELEVEN_LABS_API_KEY;
 
-export async function textToAudio(text, voice, bot) {
+export async function textToAudio(text, voice) {
   try {
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
