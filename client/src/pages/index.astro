@@ -1,5 +1,7 @@
 ---
+import voices from "../data/elevenLabsVoicesDict.json";
 
+const voiceArray = Object.keys(voices);
 ---
 
 <html>
@@ -16,10 +18,28 @@
       <div class="bot-container">
         <div class="bot bot-one">
           <img class="bot-image" src="/cat.png" />
+          <label for="voice-selector">Voice:</label>
+          <select name="voice-selector" class="voice-selector voice-one">
+            <option value="" disabled selected>Select voice one</option>
+            {
+              voiceArray.map((voice) => (
+                <option value={voices[voice]}>{voice}</option>
+              ))
+            }
+          </select>
           <p class="bot-output output-one"></p>
         </div>
         <div class="bot bot-two">
           <img class="bot-image" src="/chicken.png" />
+          <label for="voice-selector">Voice:</label>
+          <select name="voice-selector" class="voice-selector voice-two">
+            <option value="" disabled selected>Select voice two</option>
+            {
+              voiceArray.map((voice) => (
+                <option value={voices[voice]}>{voice}</option>
+              ))
+            }
+          </select>
           <div class="bot-output output-two"></div>
         </div>
       </div>
@@ -33,9 +53,13 @@
       ".prompt-input"
     ) as HTMLInputElement;
     const botOneOutput = document.querySelector(".output-one");
+    const botTwoOutput = document.querySelector(".output-two");
     const conversationContext: object[] = [];
+    const voiceOne = document.querySelector(".voice-one") as HTMLInputElement;
+    const voiceTwo = document.querySelector(".voice-two") as HTMLInputElement;
+    let useVoiceOne = false;
 
-    // Add voice selector to frontend, send voice code along with req
+    // Need to cancel request if voices are not selected
 
     // Start button will always initiate new convo
     // Hide after initial push, switch to convo display
@@ -59,7 +83,7 @@
                   "Content-Type": "application/json",
                   Accept: "application/json",
                 },
-                body: JSON.stringify({ data: textData }),
+                body: JSON.stringify({ data: textData, voice: voiceOne.value }),
               };
               botOneOutput!.innerHTML = textData;
               conversationContext.push({ role: "user", content: textData });
@@ -97,16 +121,22 @@
         fetch("http://localhost:3000/continue", textConfig)
           .then(async (res) => res.json())
           .then(async (textData) => {
+            const currentVoice = useVoiceOne ? voiceOne.value : voiceTwo.value;
             const audioConfig = {
               method: `POST`,
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
               },
-              body: JSON.stringify({ data: textData }),
+              body: JSON.stringify({ data: textData, voice: currentVoice }),
             };
-            botOneOutput!.innerHTML = textData;
+            if (useVoiceOne) {
+              botOneOutput!.innerHTML = textData;
+            } else {
+              botTwoOutput!.innerHTML = textData;
+            }
             conversationContext.push({ role: "user", content: textData });
+            useVoiceOne = !useVoiceOne;
             return fetch("http://localhost:3000/audio", audioConfig);
           })
           .then(async (res) => await res.arrayBuffer())
@@ -121,6 +151,11 @@
   </script>
 
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
     main {
       display: flex;
       flex-flow: column nowrap;
@@ -132,6 +167,7 @@
       align-items: center;
       gap: 4em;
     }
+
     h1 {
       position: relative;
     }
@@ -142,13 +178,19 @@
       justify-content: center;
     }
 
+    .voice-selector {
+      width: 50%;
+      align-self: center;
+    }
+
     .bot-image {
-      height: 50%;
+      height: 250px;
     }
 
     .bot-container {
       display: grid;
       grid-template: 1fr / 1fr 1fr;
+      align-items: start;
     }
 
     .start-button {
