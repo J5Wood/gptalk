@@ -15,6 +15,7 @@ const voiceArray = Object.keys(voices);
         </div>
       </header>
       <button class="start-button">START</button>
+      <button class="pause-button">PAUSE</button>
       <div class="bot-container">
         <div class="bot bot-one">
           <img class="bot-image" src="/cat.png" />
@@ -49,6 +50,7 @@ const voiceArray = Object.keys(voices);
     const audioContext = new AudioContext();
     let playableAudio;
     const startButton = document.querySelector(".start-button");
+    const pauseButton = document.querySelector(".pause-button");
     const initialPrompt = document.querySelector(
       ".prompt-input"
     ) as HTMLInputElement;
@@ -58,6 +60,8 @@ const voiceArray = Object.keys(voices);
     const voiceOne = document.querySelector(".voice-one") as HTMLInputElement;
     const voiceTwo = document.querySelector(".voice-two") as HTMLInputElement;
     let useVoiceOne = false;
+    let paused = true;
+    let playing = false;
 
     // Need to cancel request if voices are not selected
 
@@ -65,6 +69,8 @@ const voiceArray = Object.keys(voices);
     // Hide after initial push, switch to convo display
     if (startButton) {
       startButton.addEventListener("click", () => {
+        playing = true;
+        paused = false;
         const textConfig = {
           method: `POST`,
           headers: {
@@ -86,7 +92,11 @@ const voiceArray = Object.keys(voices);
                 body: JSON.stringify({ data: textData, voice: voiceOne.value }),
               };
               botOneOutput!.innerHTML = textData;
-              conversationContext.push({ role: "user", content: textData });
+              conversationContext.push({
+                role: "user",
+                content: textData,
+                name: "bot-one",
+              });
               return fetch("http://localhost:3000/audio", audioConfig);
             })
             .then(async (res) => await res.arrayBuffer())
@@ -100,52 +110,80 @@ const voiceArray = Object.keys(voices);
       });
     }
 
+    if (pauseButton) {
+      pauseButton.addEventListener("click", () => {
+        if (paused == true) {
+          paused = false;
+          if (!playing) continueConversation();
+        } else {
+          paused = true;
+        }
+      });
+    }
+
     function playAudio() {
       const playSound = audioContext.createBufferSource();
-      playSound.addEventListener("ended", continueConversation);
+      playSound.addEventListener("ended", () => {
+        playing = false;
+        continueConversation();
+      });
       playSound.buffer = playableAudio;
       playSound.connect(audioContext.destination);
       playSound.start(audioContext.currentTime);
     }
 
     function continueConversation() {
-      const textConfig = {
-        method: `POST`,
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ data: conversationContext }),
-      };
-      try {
-        fetch("http://localhost:3000/continue", textConfig)
-          .then(async (res) => res.json())
-          .then(async (textData) => {
-            const currentVoice = useVoiceOne ? voiceOne.value : voiceTwo.value;
-            const audioConfig = {
-              method: `POST`,
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              body: JSON.stringify({ data: textData, voice: currentVoice }),
-            };
-            if (useVoiceOne) {
-              botOneOutput!.innerHTML = textData;
-            } else {
-              botTwoOutput!.innerHTML = textData;
-            }
-            conversationContext.push({ role: "user", content: textData });
-            useVoiceOne = !useVoiceOne;
-            return fetch("http://localhost:3000/audio", audioConfig);
-          })
-          .then(async (res) => await res.arrayBuffer())
-          .then(async (audio) => {
-            playableAudio = await audioContext.decodeAudioData(audio);
-            playAudio();
-          });
-      } catch (err) {
-        console.log("Continued conversation error: \n", err);
+      if (paused == false) {
+        playing = true;
+        const textConfig = {
+          method: `POST`,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ data: conversationContext }),
+        };
+        try {
+          fetch("http://localhost:3000/continue", textConfig)
+            .then(async (res) => res.json())
+            .then(async (textData) => {
+              const currentVoice = useVoiceOne
+                ? voiceOne.value
+                : voiceTwo.value;
+              const currentBot = useVoiceOne ? "bot-one" : "bot-two";
+              const audioConfig = {
+                method: `POST`,
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify({
+                  data: textData,
+                  voice: currentVoice,
+                }),
+              };
+              if (useVoiceOne) {
+                botOneOutput!.innerHTML = textData;
+              } else {
+                botTwoOutput!.innerHTML = textData;
+              }
+              conversationContext.push({
+                role: "user",
+                content: textData,
+                name: currentBot,
+              });
+              useVoiceOne = !useVoiceOne;
+              return fetch("http://localhost:3000/audio", audioConfig);
+            })
+            .then(async (res) => await res.arrayBuffer())
+            .then(async (audio) => {
+              playableAudio = await audioContext.decodeAudioData(audio);
+              playAudio();
+            });
+        } catch (err) {
+          playing = false;
+          console.log("Continued conversation error: \n", err);
+        }
       }
     }
   </script>
