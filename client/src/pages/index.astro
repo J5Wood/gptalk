@@ -18,7 +18,7 @@ const voiceArray = Object.keys(voices);
       <button class="pause-button">PAUSE</button>
       <div class="bot-container">
         <div class="bot bot-one">
-          <img class="bot-image" src="/cat.png" />
+          <img class="bot-image bot-image-one" src="/cat.png" />
           <label for="voice-selector">Voice:</label>
           <select name="voice-selector" class="voice-selector voice-one">
             <option value="" disabled selected>Select voice one</option>
@@ -31,7 +31,7 @@ const voiceArray = Object.keys(voices);
           <p class="bot-output output-one"></p>
         </div>
         <div class="bot bot-two">
-          <img class="bot-image" src="/chicken.png" />
+          <img class="bot-image bot-image-two" src="/chicken.png" />
           <label for="voice-selector">Voice:</label>
           <select name="voice-selector" class="voice-selector voice-two">
             <option value="" disabled selected>Select voice two</option>
@@ -59,77 +59,91 @@ const voiceArray = Object.keys(voices);
     const conversationContext: object[] = [];
     const voiceOne = document.querySelector(".voice-one") as HTMLInputElement;
     const voiceTwo = document.querySelector(".voice-two") as HTMLInputElement;
-    let useVoiceOne = false;
+    let useVoiceOne = true;
     let paused = true;
     let playing = false;
 
+    const botOneImage = document.querySelector(".bot-image-one");
+    const botTwoImage = document.querySelector(".bot-image-two");
     // Need to cancel request if voices are not selected
 
     // Start button will always initiate new convo
     // Hide after initial push, switch to convo display
-    if (startButton) {
-      startButton.addEventListener("click", () => {
-        playing = true;
-        paused = false;
-        const textConfig = {
-          method: `POST`,
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ data: initialPrompt.value }),
-        };
-        try {
-          fetch("http://localhost:3000", textConfig)
-            .then(async (res) => res.json())
-            .then(async (textData) => {
-              const audioConfig = {
-                method: `POST`,
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                },
-                body: JSON.stringify({ data: textData, voice: voiceOne.value }),
-              };
-              botOneOutput!.innerHTML = textData;
-              conversationContext.push({
-                role: "user",
-                content: textData,
-                name: "bot-one",
-              });
-              return fetch("http://localhost:3000/audio", audioConfig);
-            })
-            .then(async (res) => await res.arrayBuffer())
-            .then(async (audio) => {
-              playableAudio = await audioContext.decodeAudioData(audio);
-              playAudio();
+    startButton!.addEventListener("click", () => {
+      playing = true;
+      paused = false;
+      const textConfig = {
+        method: `POST`,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ data: initialPrompt.value }),
+      };
+      try {
+        fetch("http://localhost:3000", textConfig)
+          .then(async (res) => res.json())
+          .then(async (textData) => {
+            const audioConfig = {
+              method: `POST`,
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ data: textData, voice: voiceOne.value }),
+            };
+            botOneOutput!.innerHTML = textData;
+            conversationContext.push({
+              role: "user",
+              content: textData,
+              name: "bot-one",
             });
-        } catch (err) {
-          console.log("Start conversation error: \n", err);
-        }
-      });
-    }
+            return fetch("http://localhost:3000/audio", audioConfig);
+          })
+          .then(async (res) => await res.arrayBuffer())
+          .then(async (audio) => {
+            playableAudio = await audioContext.decodeAudioData(audio);
+            playAudio();
+          });
+      } catch (err) {
+        console.log("Start conversation error: \n", err);
+      }
+    });
 
-    if (pauseButton) {
-      pauseButton.addEventListener("click", () => {
-        if (paused == true) {
-          paused = false;
-          if (!playing) continueConversation();
-        } else {
-          paused = true;
-        }
-      });
-    }
+    pauseButton!.addEventListener("click", () => {
+      if (paused == true) {
+        paused = false;
+        if (!playing) continueConversation();
+      } else {
+        paused = true;
+      }
+    });
 
     function playAudio() {
+      animateBot();
       const playSound = audioContext.createBufferSource();
       playSound.addEventListener("ended", () => {
+        unAnimate();
         playing = false;
         continueConversation();
       });
       playSound.buffer = playableAudio;
       playSound.connect(audioContext.destination);
       playSound.start(audioContext.currentTime);
+      useVoiceOne = !useVoiceOne;
+    }
+
+    function animateBot() {
+      if (useVoiceOne) {
+        botOneImage!.classList.add("dance");
+      } else {
+        botTwoImage!.classList.add("dance");
+      }
+    }
+
+    function unAnimate() {
+      const dancingImage = document.querySelector(".dance");
+      dancingImage?.classList.remove("dance");
     }
 
     function continueConversation() {
@@ -172,7 +186,7 @@ const voiceArray = Object.keys(voices);
                 content: textData,
                 name: currentBot,
               });
-              useVoiceOne = !useVoiceOne;
+
               return fetch("http://localhost:3000/audio", audioConfig);
             })
             .then(async (res) => await res.arrayBuffer())
@@ -245,6 +259,21 @@ const voiceArray = Object.keys(voices);
       border: 1px solid black;
       height: 150px;
       width: 85%;
+    }
+
+    .dance {
+      animation: bounce 0.2s;
+      animation-direction: alternate;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes bounce {
+      from {
+        transform: rotate(0deg) translate3d(0, 0, 0);
+      }
+      to {
+        transform: rotate(-10deg) translate3d(5px, 20px, 0);
+      }
     }
   </style>
 </html>
